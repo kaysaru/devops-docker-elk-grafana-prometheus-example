@@ -8,9 +8,27 @@ const {Model} = require('objection')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+const promClient = require('prom-client');
+// Create a Registry to register the metrics
+const register = new promClient.Registry();
+// Collect default metrics
+promClient.collectDefaultMetrics({ register });
+
+// Optional: create a custom metric
+const httpRequests = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+});
+
 logger.info('Connecting to database...')
 Model.knex(knex)
 var app = express();
+
+// Expose metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
