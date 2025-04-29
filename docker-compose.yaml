@@ -68,8 +68,19 @@ services:
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     ports:
       - "9090:9090"
+
+  # Prometheus alert manager
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
 
   # Grafana
   grafana:

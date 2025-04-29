@@ -1,0 +1,14 @@
+[
+  {
+    "status": "firing",
+    "labels": {
+      "alertname": "HighCPUUsage",
+      "instance": "your-server",
+      "severity": "critical"
+    },
+    "annotations": {
+      "summary": "CPU is overloaded",
+      "description": "CPU usage is at 95% for 5 minutes"
+    }
+  }
+]

@@ -2,7 +2,7 @@ groups:
 - name: system-alerts
   rules:
   - alert: HighCPUUsage
-    expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100 > 50
+    expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 10
     for: 5m
     labels:
       severity: warning
@@ -11,7 +11,7 @@ groups:
       description: "CPU usage is {{ $value }}% (threshold: 80%)"
 
   - alert: HighMemoryUsage
-    expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes * 100 > 85
+    expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes * 100 > 20
     for: 5m
     labels:
       severity: critical

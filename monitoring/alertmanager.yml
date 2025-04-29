@@ -1,0 +1,21 @@
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: 'telegram'
+
+receivers:
+- name: 'telegram'
+  telegram_configs:
+  - api_url: "https://api.telegram.org"
+    bot_token: "8144298947:AAGSA6JQOZG9sjSFFV7mxrrdCi9yJD4-m80"
+    chat_id: -4674150387
+    send_resolved: true
+    send_resolved: true
+    parse_mode: "MarkdownV2"
+    message: |
+      *\[{{ .Status | title }}]* {{ .CommonLabels.alertname }}
+      *Instance*: `{{ .CommonLabels.instance }}`
+      *Severity*: {{ .CommonLabels.severity }}
+      *Description*: {{ .CommonAnnotations.description }}
