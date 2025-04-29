@@ -21,6 +21,7 @@
     "winston-logstash-transport": "^2.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.9"
+    "nodemon": "^2.0.9",
+    "sonarqube-scanner": "^4.3.0"
   }
 }
