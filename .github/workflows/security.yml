@@ -1,0 +1,71 @@
+name: Security Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sonar:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  trivy:
+    name: Trivy Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image for express_server
+        run: docker build -f Dockerfile -t express_server:latest .
+
+      - name: Trivy Vulnerability Scan
+        id: trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: express_server:latest
+          format: table
+          exit-code: 1
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Telegram Notify on Trivy Fail
+        if: failure()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="🚨 Trivy обнаружил уязвимости в Docker-образе express_server!"
+
+  zap:
+    name: OWASP ZAP Scan
+    runs-on: ubuntu-latest
+    services:
+      express:
+        image: express_server:latest
+        ports:
+          - 3000:3000
+    steps:
+      - name: Wait for service
+        run: sleep 15
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+        continue-on-error: true
+
+      - name: Telegram Notify on ZAP Alerts
+        if: failure()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="⚠️ OWASP ZAP обнаружил проблемы на http://localhost:3000"
+
