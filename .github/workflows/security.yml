@@ -68,4 +68,32 @@ jobs:
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="⚠️ OWASP ZAP обнаружил проблемы на http://localhost:3000"
+  
+  security:
+    runs-on: ubuntu-latest
 
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vault CLI
+        run: |
+          curl -fsSL https://releases.hashicorp.com/vault/1.13.3/vault_1.13.3_linux_amd64.zip -o vault.zip
+          unzip vault.zip
+          sudo mv vault /usr/local/bin
+
+      - name: Load Secrets from Vault
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          BOT_TOKEN=$(vault kv get -field=BOT_TOKEN secret/telegram)
+          CHAT_ID=$(vault kv get -field=CHAT_ID secret/telegram)
+
+          echo "BOT_TOKEN=$BOT_TOKEN" >> $GITHUB_ENV
+          echo "CHAT_ID=$CHAT_ID" >> $GITHUB_ENV
+
+      - name: Notify via Telegram
+        run: |
+          curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
+            -d chat_id=$CHAT_ID \
+            -d text="✅ GitHub Actions получил секреты из Vault успешно."
