@@ -6,7 +6,7 @@ RUN apk update && apk upgrade && apk add bash make git python3
 WORKDIR /app
 
 # Add `/app/node_modules/bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+ENV PATH=/app/node_modules/.bin:$PATH
 
 # Install app dependencies
 COPY package*.json ./
